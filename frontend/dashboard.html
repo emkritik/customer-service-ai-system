@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <h1>Manager Dashboard</h1>
+        <div>
+            <a href="index.html" class="nav-link">Rep View</a>
+            <a href="dashboard.html" class="nav-link active">Manager Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Queries</h3>
+                <div class="stat-number" id="totalQueries">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Avg Confidence</h3>
+                <div class="stat-number" id="avgConfidence">0%</div>
+            </div>
+            <div class="stat-card">
+                <h3>Active Reps</h3>
+                <div class="stat-number" id="activeReps">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Avg Response Time</h3>
+                <div class="stat-number" id="avgResponseTime">0ms</div>
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>Representative Usage</h2>
+            <table class="data-table" id="userStatsTable">
+                <thead>
+                    <tr>
+                        <th>Rep Name</th>
+                        <th>Query Count</th>
+                        <th>Avg Confidence</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>Most Used Documents</h2>
+            <table class="data-table" id="docStatsTable">
+                <thead>
+                    <tr>
+                        <th>Document</th>
+                        <th>Usage Count</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>Low Confidence Queries (< 70%)</h2>
+            <table class="data-table" id="lowConfidenceTable">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Question</th>
+                        <th>Confidence</th>
+                        <th>Rep</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_URL}/api/stats`);
+                const stats = await response.json();
+
+                document.getElementById('totalQueries').textContent = stats.total_queries;
+                document.getElementById('avgConfidence').textContent = stats.avg_confidence + '%';
+                document.getElementById('activeReps').textContent = stats.active_reps;
+                document.getElementById('avgResponseTime').textContent = Math.round(stats.avg_response_time) + 'ms';
+
+                // User stats table
+                const userTableBody = document.querySelector('#userStatsTable tbody');
+                userTableBody.innerHTML = stats.user_stats.map(user => `
+                    <tr>
+                        <td>${user.name}</td>
+                        <td>${user.query_count}</td>
+                        <td>${user.avg_confidence}%</td>
+                    </tr>
+                `).join('');
+
+                // Document stats table
+                const docTableBody = document.querySelector('#docStatsTable tbody');
+                docTableBody.innerHTML = stats.document_stats.map(doc => `
+                    <tr>
+                        <td>${doc.document}</td>
+                        <td>${doc.usage_count}</td>
+                    </tr>
+                `).join('');
+
+                // Low confidence table
+                const lowConfTableBody = document.querySelector('#lowConfidenceTable tbody');
+                lowConfTableBody.innerHTML = stats.low_confidence_queries.map(query => `
+                    <tr>
+                        <td>${new Date(query.timestamp).toLocaleString()}</td>
+                        <td>${query.original_question.substring(0, 50)}...</td>
+                        <td><span class="badge badge-red">${query.confidence_score}%</span></td>
+                        <td>${query.user_name}</td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load stats on page load
+        loadStats();
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadStats, 30000);
+    </script>
+</body>
+</html>

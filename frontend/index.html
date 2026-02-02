@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Service Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <h1>Customer Service Assistant</h1>
+        <div>
+            <a href="index.html" class="nav-link active">Rep View</a>
+            <a href="dashboard.html" class="nav-link">Manager Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="input-section">
+            <h2>Ask a Question</h2>
+            <input type="text" id="repName" placeholder="Your Name" class="input-field">
+            <textarea id="question" placeholder="Enter customer question (e.g., Customer says they were charged twice for the same purchase)" rows="4" class="input-field"></textarea>
+            <button onclick="submitQuery()" class="btn-primary" id="submitBtn">Get Answer</button>
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Processing query through AI agents...</p>
+            </div>
+        </div>
+
+        <div id="results" class="results-section" style="display: none;">
+            <div class="reformulated-query">
+                <h3>🔄 Reformulated Query:</h3>
+                <p id="reformulatedQuery"></p>
+            </div>
+
+            <div class="answer-box">
+                <h3>Answer:</h3>
+                <div id="answer"></div>
+            </div>
+
+            <div class="confidence-section">
+                <h3>Confidence Score:</h3>
+                <div id="confidenceBadge"></div>
+            </div>
+
+            <div class="source-section">
+                <h3>Source:</h3>
+                <div id="sources"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+#!/bin/bash
+# Script to push to GitHub
+# Replace YOUR_USERNAME and YOUR_REPO_NAME with your actual values
+
+echo "============================================"
+echo "Push to GitHub"
+echo "============================================"
+echo ""
+echo "After creating your repo on GitHub, run:"
+echo ""
+echo "REPLACE 'YOUR_USERNAME' and 'YOUR_REPO_NAME' with your actual GitHub username and repository name"
+echo ""
+echo "Then run these commands:"
+echo ""
+echo "cd \"/Users/manoliskritikos/Downloads/Costumer Service Support System\""
+echo "git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git"
+echo "git branch -M main"
+echo "git push -u origin main"
+echo ""
+echo "Or if you prefer SSH:"
+echo ""
+echo "git remote add origin git@github.com:YOUR_USERNAME/YOUR_REPO_NAME.git"
+echo "git branch -M main"
+echo "git push -u origin main"
+echo ""
+echo "============================================"
