@@ -3,7 +3,7 @@ const API_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:8000'
   : window.location.hostname.includes('127.0.0.1')
     ? 'http://localhost:8000'
-    : 'https://YOUR-BACKEND-NAME.onrender.com';  // UPDATE THIS WITH YOUR RENDER URL
+    : 'https://customer-service-ai-system.onrender.com';  // UPDATE THIS WITH YOUR RENDER URL
 
 console.log('Using API URL:', API_URL);
 
