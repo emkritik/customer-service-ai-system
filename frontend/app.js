@@ -1,4 +1,11 @@
-const API_URL = 'http://localhost:8000';
+// Auto-detect environment
+const API_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:8000'
+  : window.location.hostname.includes('127.0.0.1')
+    ? 'http://localhost:8000'
+    : 'https://YOUR-BACKEND-NAME.onrender.com';  // UPDATE THIS WITH YOUR RENDER URL
+
+console.log('Using API URL:', API_URL);
 
 async function submitQuery() {
     const repName = document.getElementById('repName').value.trim();
@@ -31,23 +38,17 @@ async function submitQuery() {
             })
         });
 
-        // Check if HTTP request was successful
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-        }
-
         const result = await response.json();
 
         if (result.success) {
             displayResults(result);
         } else {
-            alert('Error: ' + (result.message || 'Unknown error occurred'));
+            displayError(result.error || 'An error occurred. Please try again.');
         }
 
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to get answer. Error: ' + error.message + '\n\nMake sure the backend is running with the API key set.');
+        displayError('Unable to connect to the server. Please check your connection and try again.');
     } finally {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('submitBtn').disabled = false;
@@ -55,7 +56,6 @@ async function submitQuery() {
 }
 
 function displayResults(result) {
-    // Show results section
     document.getElementById('results').style.display = 'block';
 
     // Display reformulated query
@@ -114,6 +114,19 @@ function displayResults(result) {
 
     // Scroll to results
     document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+
+function displayError(message) {
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.style.display = 'block';
+    resultsDiv.innerHTML = `
+        <div class="error-message">
+            <h3>⚠️ Error</h3>
+            <p>${message}</p>
+            <button onclick="location.reload()" class="btn-primary">Try Again</button>
+        </div>
+    `;
+    resultsDiv.scrollIntoView({ behavior: 'smooth' });
 }
 
 function openPDF(filename, page) {

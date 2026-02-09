@@ -1,0 +1,21 @@
+services:
+  # Backend Web Service
+  - type: web
+    name: customer-service-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r backend/requirements.txt && cd backend && python init_rag.py"
+    startCommand: "cd backend && uvicorn api.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ENVIRONMENT
+        value: production
+    disk:
+      name: data-disk
+      mountPath: /opt/render/project/src/backend
+      sizeGB: 1
+    healthCheckPath: /health
