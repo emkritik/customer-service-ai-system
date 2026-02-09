@@ -34,7 +34,7 @@ ENV/
 *~
 
 # Vector Database (generated files)
-chroma_db/
+# chroma_db/  # Commented out to commit pre-built vector DB for Render deployment
 
 # SQLite Database (generated files)
 data/
