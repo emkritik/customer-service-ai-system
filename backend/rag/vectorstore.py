@@ -3,7 +3,7 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from .document_loader import load_pdfs_from_directory
 
-PERSIST_DIRECTORY = "../chroma_db"
+PERSIST_DIRECTORY = "./chroma_db"
 
 def create_vectorstore():
     """Create and persist vector store"""
