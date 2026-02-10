@@ -71,7 +71,9 @@ async def process_query(request: QueryRequest):
         # STEP 1: Get relevant documents (no LLM call - just vector search)
         logger.info("[Vector Search] Retrieving relevant documents...")
         try:
-            retrieved_docs = search_knowledge_base(request.question, k=3)
+            # Use cached vectorstore instead of loading fresh each time
+            vectorstore = get_or_load_vectorstore()
+            retrieved_docs = vectorstore.similarity_search(request.question, k=3)
             context = "\n\n".join([
                 f"Source: {doc.metadata['source']} (Page {doc.metadata['page']})\n{doc.page_content}"
                 for doc in retrieved_docs
@@ -257,6 +259,19 @@ async def global_exception_handler(request, exc):
         }
     )
 
+# Global variable to cache the vector store
+_vectorstore_cache = None
+
+def get_or_load_vectorstore():
+    """Get cached vector store or load it"""
+    global _vectorstore_cache
+    if _vectorstore_cache is None:
+        logger.info("Loading vector store for the first time...")
+        from rag.vectorstore import load_vectorstore
+        _vectorstore_cache = load_vectorstore()
+        logger.info("Vector store loaded and cached")
+    return _vectorstore_cache
+
 # Startup/shutdown events
 @app.on_event("startup")
 async def startup_event():
@@ -264,6 +279,15 @@ async def startup_event():
     logger.info("Customer Service Support System - STARTING")
     logger.info(f"Environment: {os.environ.get('ENVIRONMENT', 'development')}")
     logger.info("=" * 60)
+
+    # Preload vector store during startup (not on first request!)
+    try:
+        logger.info("Preloading vector store...")
+        get_or_load_vectorstore()
+        logger.info("✓ Vector store preloaded successfully")
+    except Exception as e:
+        logger.error(f"⚠️  Warning: Could not preload vector store: {e}")
+        logger.error("Vector store will be loaded on first request")
 
 @app.on_event("shutdown")
 async def shutdown_event():
