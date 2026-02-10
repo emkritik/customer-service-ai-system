@@ -223,6 +223,26 @@ async def root():
 async def health():
     return {"status": "healthy"}
 
+@app.get("/warmup")
+async def warmup():
+    """Warmup endpoint to preload vector store and keep service alive"""
+    try:
+        logger.info("Warmup request received - preloading vectorstore...")
+        vectorstore = get_or_load_vectorstore()
+        logger.info("Warmup complete - vectorstore ready")
+        return {
+            "status": "warm",
+            "message": "Vector store loaded and ready",
+            "cached": _vectorstore_cache is not None
+        }
+    except Exception as e:
+        logger.error(f"Warmup failed: {e}")
+        return {
+            "status": "cold",
+            "message": "Warmup failed but service is running",
+            "error": str(e)
+        }
+
 @app.get("/api/pdf/{filename}")
 async def get_pdf(filename: str):
     """Serve PDF files from knowledge base"""
