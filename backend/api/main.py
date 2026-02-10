@@ -280,14 +280,9 @@ async def startup_event():
     logger.info(f"Environment: {os.environ.get('ENVIRONMENT', 'development')}")
     logger.info("=" * 60)
 
-    # Preload vector store during startup (not on first request!)
-    try:
-        logger.info("Preloading vector store...")
-        get_or_load_vectorstore()
-        logger.info("✓ Vector store preloaded successfully")
-    except Exception as e:
-        logger.error(f"⚠️  Warning: Could not preload vector store: {e}")
-        logger.error("Vector store will be loaded on first request")
+    # Note: Vector store loads on first request due to Render free tier memory limits
+    logger.info("⚠️  First query will take 30-60s (cold start)")
+    logger.info("Subsequent queries will be fast (<10s)")
 
 @app.on_event("shutdown")
 async def shutdown_event():
