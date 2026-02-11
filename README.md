@@ -1,414 +1,179 @@
 # Customer Service Support System
 
-AI-powered customer service assistant using multi-agent RAG pipeline with Claude - **PRODUCTION READY**
+AI-powered customer service assistant using a multi-agent RAG pipeline with Claude Sonnet 4.5.
 
-## 🚀 Production Deployment
+## Live Deployment
 
-**Status**: ✅ Live and Operational
-
-### Live URLs
-- **Frontend**: https://[update-after-deployment].netlify.app or .vercel.app
+- **Frontend**: https://constumer-service-ai.netlify.app/
 - **Backend API**: https://customer-service-ai-system.onrender.com
-- **API Documentation**: https://customer-service-ai-system.onrender.com/docs
-- **Health Check**: https://customer-service-ai-system.onrender.com/health
+- **API Docs**: https://customer-service-ai-system.onrender.com/docs
 
-### Production Features
+**Note**: The backend is deployed on Render's free tier (512MB RAM), which has limitations loading the HuggingFace embedding model. See [KNOWN_ISSUES.md](KNOWN_ISSUES.md) for details. The application works great locally with sufficient memory.
 
-✅ **Performance Optimized**
-- Response time: 5-10 seconds (down from 13-20s)
-- Improvement: 60-70% faster
-- Method: Combined API calls + caching
+## What This Does
 
-✅ **Error Handling**
-- Comprehensive try-catch blocks
-- Graceful failures (never crashes)
-- User-friendly error messages
-- Full error logging
-
-✅ **Security**
-- No secrets in code
-- Environment variables properly configured
-- HTTPS enforced
-- CORS configured
-
-✅ **Production Logging**
-- Structured logging throughout
-- Request/response tracking
-- Agent execution logs
-- Viewable in Render dashboard
-
-✅ **Deployment**
-- Frontend: Netlify/Vercel (global CDN)
-- Backend: Render (free tier)
-- Auto-deploy on Git push
-- Monitoring: UptimeRobot
-
-### Quick Start (Production)
-
-Visit the frontend URL and start asking questions!
-
-**Note**: First use after inactivity? Click "Wake Up Backend" button (takes 30-60s once, then fast).
-
-### Documentation
-- [Production Notes](PRODUCTION_NOTES.md) - Technical details
-- [Deployment Guide](DEPLOYMENT.md) - How to deploy
-- [Submission](SUBMISSION.md) - Assessment deliverable
-
-## ✅ Additional Features
-
-### Logging
-- Structured logging throughout application
-- Request/response tracking
-- Agent execution monitoring
-- Real-time logs in production dashboard
-
-### Deployment
-- Platform: Render (free tier compatible)
-- Backend: Python FastAPI with auto-scaling
-- Frontend: Static hosting with CDN
-- Database: SQLite with persistent disk
-
-## 📊 Performance Testing
-
-Test your deployment:
-```bash
-# Test local
-python backend/test_performance.py
-
-# Test production
-python backend/test_performance.py https://your-backend.onrender.com
-```
-
-Expected results:
-- **Average**: 4-8 seconds
-- **Success rate**: >95%
-- **Confidence**: >85% average
+This system helps customer service reps answer questions by:
+1. Taking a customer question
+2. Searching through a knowledge base of banking documents (PDFs)
+3. Using Claude to generate accurate, sourced answers
+4. Showing confidence scores and source documents
 
 ## Architecture
 
-**User Question → Vector Search → Combined Agent (Reformulation + Answer) → Validation Agent → Response**
+### Backend (`backend/`)
+- **FastAPI** for the REST API
+- **ChromaDB** for vector storage
+- **LangChain** for the RAG pipeline
+- **Claude Sonnet 4.5** for the AI agents
+- **HuggingFace** embeddings (sentence-transformers)
 
-The system uses an **optimized 2-call architecture** (previously 3 calls):
+### Frontend (`frontend/`)
+- Plain HTML/CSS/JavaScript (no frameworks)
+- Clean, simple interface
+- Shows reformulated queries, answers, confidence scores, and sources
 
-1. **Vector Search**: Fast retrieval of relevant documents from knowledge base (no LLM call)
-2. **Combined Agent**: Reformulates query + generates answer in ONE API call (optimization!)
-3. **Validation Agent**: Evaluates answer quality and assigns confidence score
+## Code Optimizations
 
-**Performance Optimization**: By combining reformulation and answering into a single LLM call with context already provided from vector search, we reduced response time by 60-70%.
+I made some changes to improve response times:
 
-## Features
+### Original Design (3 API calls)
+```
+1. Reformulation Agent → Rewrites query (Claude API call)
+2. Search Agent → Finds docs (Claude API call)
+3. Validation Agent → Checks answer (Claude API call)
+```
 
-### Core Functionality
-- **Optimized multi-agent pipeline** with Claude Sonnet 4.5
-- **RAG system** with vector embeddings (ChromaDB + HuggingFace)
-- **Rep View UI** for customer service representatives
-- **Manager Dashboard** with analytics and statistics
-- **SQLite database** tracking all queries
-- **Confidence scoring** with visual indicators (green/yellow/red)
-- **Source document attribution** with clickable PDF links
-- **Response time tracking** and performance monitoring
+### Optimized Design (2 API calls)
+```
+1. Combined Agent → Reformulates + answers in one call
+2. Validation Agent → Quick yes/no check (10 tokens max)
+```
 
-### Production Features
-- **Comprehensive error handling** - never crashes, always provides feedback
-- **Structured logging** - debug issues easily with detailed logs
-- **Environment-based configuration** - secure secrets management
-- **Auto-detect API URLs** - works in local and production environments
-- **Performance testing suite** - validate response times
-- **Health check endpoint** - monitoring and uptime tracking
+**Expected improvement**: Should reduce response time significantly by eliminating one full Claude API call and reducing token usage.
 
-## Setup Instructions
+**Reality check**: Haven't been able to fully test this on Render due to memory constraints, but the local version shows the optimization working as expected.
 
-### 1. Prerequisites
+## Setup & Deployment
 
-- Python 3.9+
-- Anthropic API key
-
-### 2. Installation
-
+### Local Development
 ```bash
-# Navigate to project directory
-cd "Costumer Service Support System"
-
-# Install backend dependencies
+# Backend
 cd backend
 pip install -r requirements.txt
-```
-
-### 3. Configuration
-
-Create a `.env` file in the `backend/` directory:
-
-```bash
-cd backend
 cp .env.example .env
-```
-
-Edit `.env` and add your Anthropic API key:
-
-```
-ANTHROPIC_API_KEY=your-api-key-here
-DATABASE_URL=sqlite:///./data/customer_service.db
-ENVIRONMENT=development
-```
-
-**IMPORTANT**: Never commit your `.env` file to Git. It's already in `.gitignore`.
-
-### 4. Add Knowledge Base
-
-Place your 8 banking PDF files in the `knowledge_base/` directory. The system will automatically:
-- Extract text from all PDFs
-- Split content into chunks
-- Create vector embeddings
-- Build a searchable knowledge base
-
-### 5. Initialize System
-
-Run the initialization script to set up the database and vector store:
-
-```bash
-cd backend
-python init_rag.py
-```
-
-This will:
-- Create the SQLite database
-- Load all PDFs from knowledge_base/
-- Generate embeddings using sentence-transformers
-- Build the ChromaDB vector store
-- Verify the setup is complete
-
-### 6. Start Backend
-
-```bash
-# From the backend directory
+# Add your ANTHROPIC_API_KEY to .env
 uvicorn api.main:app --reload --port 8000
-```
 
-The API will be available at [http://localhost:8000](http://localhost:8000)
-
-### 7. Open Frontend
-
-**Option 1: Direct file open**
-- Open [frontend/index.html](frontend/index.html) directly in your web browser
-
-**Option 2: Simple HTTP server**
-```bash
+# Frontend (separate terminal)
 cd frontend
-python -m http.server 8080
+python -m http.server 3000
 ```
-Then visit [http://localhost:8080](http://localhost:8080)
 
-## Testing the System
+Visit http://localhost:3000
 
-### Example Questions to Try
+### Deployment
 
-1. **"Customer is yelling that money was stolen from his card"**
-   - Tests fraud/dispute handling
-   - Should retrieve fraud security documentation
-   - Expected: Information about unauthorized charge disputes
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
-2. **"What's the fee if account goes below minimum balance?"**
-   - Tests fee policy queries
-   - Should retrieve fees and refunds documentation
-   - Expected: Specific fee amounts and conditions
+Current setup:
+- **Backend**: Render (free tier - has memory limitations)
+- **Frontend**: Netlify (works perfectly)
 
-3. **"Customer can't log into mobile app"**
-   - Tests technical troubleshooting
-   - Should retrieve app troubleshooting guide
-   - Expected: Step-by-step login assistance
+## Key Features
 
-4. **"How long does it take to get a mortgage?"**
-   - Tests loan information queries
-   - Should retrieve loans and mortgages documentation
-   - Expected: Timeline information for mortgage processing
+### Error Handling
+- Try-catch blocks everywhere
+- Graceful degradation if APIs fail
+- User-friendly error messages
+- Comprehensive logging
 
-### Understanding Results
+### Security
+- No API keys in code
+- Environment variables for secrets
+- Proper `.gitignore` configuration
+- HTTPS enforced
 
-**Reformulated Query**: Shows how the system optimized your question for searching the knowledge base
+### Logging
+- Structured logs with timestamps
+- Request/response tracking
+- Performance metrics
+- Visible in Render dashboard
 
-**Confidence Score**:
-- **Green (90-100%)**: High confidence - answer is accurate and complete
-- **Yellow (70-89%)**: Medium confidence - answer is good but may lack some details
-- **Red (0-69%)**: Low confidence - verify answer carefully before using
+## Known Issues
 
-**Sources**: Shows which PDF document and page the information came from
+The Render free tier (512MB RAM) isn't quite enough for the HuggingFace embedding model, which needs about 350-400MB. This causes the backend to timeout during initialization.
 
-## Demo Script
+**Solutions**:
+1. Upgrade to Render Starter ($7/month, 2GB RAM)
+2. Use a different platform (Railway, Fly.io)
+3. Use a lighter embedding model
 
-1. Show the Rep View interface
-2. Enter representative name (e.g., "John Smith")
-3. Enter a customer question
-4. Click "Get Answer" and observe the processing
-5. Point out the reformulated query that appears
-6. Review the generated answer
-7. Highlight the confidence score with color coding
-8. Show the source document reference
-9. Switch to Manager Dashboard
-10. Show statistics updating in real-time
-11. Highlight low-confidence queries for review
+See [KNOWN_ISSUES.md](KNOWN_ISSUES.md) for full details.
 
 ## Project Structure
 
 ```
-customer-service-system/
+.
 ├── backend/
-│   ├── agents/                  # AI Agents
-│   │   ├── reformulation_agent.py
-│   │   ├── search_agent.py
-│   │   └── validation_agent.py
-│   ├── rag/                     # RAG System
-│   │   ├── document_loader.py
-│   │   └── vectorstore.py
-│   ├── database/                # Database Layer
-│   │   ├── db.py
-│   │   └── models.py
-│   ├── api/                     # FastAPI Backend
-│   │   └── main.py
-│   ├── init_rag.py             # Initialization Script
+│   ├── api/
+│   │   └── main.py              # FastAPI endpoints
+│   ├── rag/
+│   │   ├── vectorstore.py       # ChromaDB setup
+│   │   └── document_loader.py   # PDF processing
+│   ├── database/
+│   │   └── db.py                # SQLite for query logs
+│   ├── chroma_db/               # Vector database
 │   └── requirements.txt
-├── frontend/                    # Web UI
-│   ├── index.html              # Rep View
-│   ├── dashboard.html          # Manager Dashboard
-│   ├── app.js                  # Frontend Logic
-│   └── styles.css              # Styling
-├── knowledge_base/             # PDF Documents (user-provided)
-├── chroma_db/                  # Vector Database (auto-created)
-├── data/                       # SQLite Database (auto-created)
-│   └── customer_service.db
-└── README.md
+├── frontend/
+│   ├── index.html
+│   ├── app.js
+│   └── styles.css
+├── knowledge_base/              # PDF documents
+├── README.md
+├── DEPLOYMENT.md
+├── PRODUCTION_NOTES.md
+├── SUBMISSION.md
+└── KNOWN_ISSUES.md
 ```
 
-## API Endpoints
+## Documentation
 
-### POST /api/query
-Process a customer service query through the 3-agent pipeline.
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - How to deploy this thing
+- **[PRODUCTION_NOTES.md](PRODUCTION_NOTES.md)** - Technical decisions and architecture
+- **[KNOWN_ISSUES.md](KNOWN_ISSUES.md)** - Current limitations and workarounds
+- **[SUBMISSION.md](SUBMISSION.md)** - Assessment submission document
 
-**Request:**
-```json
-{
-  "question": "Customer wants to know about overdraft fees",
-  "user_name": "John Smith"
-}
-```
+## Tech Stack
 
-**Response:**
-```json
-{
-  "success": true,
-  "original_question": "Customer wants to know about overdraft fees",
-  "reformulated_query": "overdraft fee policy charges amount",
-  "answer": "Overdraft fees are $35 per transaction...",
-  "confidence_score": 92,
-  "sources": [
-    {"document": "fees_and_charges.pdf", "page": 3}
-  ],
-  "response_time_ms": 2847
-}
-```
+**Backend:**
+- Python 3.11
+- FastAPI
+- LangChain
+- ChromaDB
+- Anthropic Claude API
+- HuggingFace Transformers
 
-### GET /api/stats
-Get dashboard statistics.
+**Frontend:**
+- Vanilla JavaScript
+- HTML5/CSS3
 
-**Response:**
-```json
-{
-  "total_queries": 127,
-  "avg_confidence": 86.3,
-  "active_reps": 8,
-  "avg_response_time": 2456,
-  "user_stats": [...],
-  "document_stats": [...],
-  "low_confidence_queries": [...]
-}
-```
+**Deployment:**
+- Render (backend)
+- Netlify (frontend)
 
-## Troubleshooting
+## What I Learned
 
-### "Vector store not found" error
-- Make sure you ran `python init_rag.py` first
-- Check that the `chroma_db/` directory was created
-
-### "No PDF files found" error
-- Verify your PDF files are in the `knowledge_base/` directory
-- Ensure files have `.pdf` extension
-
-### "API connection failed" in frontend
-- Ensure backend is running on port 8000
-- Check that ANTHROPIC_API_KEY environment variable is set
-- Verify no other service is using port 8000
-
-### Low confidence scores
-- PDFs may not contain relevant information for the question
-- Try more specific questions related to your document content
-- Check that the reformulated query is appropriate
-- Verify PDFs were loaded correctly during initialization
-
-### Agent errors
-- Ensure ANTHROPIC_API_KEY is valid and has sufficient credits
-- Check internet connection for API calls
-- Review backend console for detailed error messages
-
-## Technical Details
-
-### RAG Pipeline
-- **Embeddings**: HuggingFace sentence-transformers/all-MiniLM-L6-v2
-- **Vector Store**: ChromaDB with persistent storage
-- **Chunk Size**: 500 characters with 50-character overlap
-- **Retrieval**: Top 3 most relevant chunks per query
-
-### Agents (Optimized Architecture)
-- **Model**: Claude Sonnet 4.5 (claude-sonnet-4-20250514)
-- **Combined Agent (Reformulation + Answer)**: 600 max tokens (single call)
-- **Validation Agent**: 10 max tokens (quick quality check)
-- **API Calls per Query**: 2 (down from 3 - 33% reduction)
-
-### Database Schema
-- Stores: timestamp, user_name, original_question, reformulated_query, answer, confidence_score, source_document, response_time_ms
-- Enables: analytics, low-confidence tracking, usage statistics
-
-## System Requirements
-
-- Python 3.9 or higher
-- 4GB RAM minimum (8GB recommended for large PDFs)
-- 1GB disk space for dependencies and vector database
-- Internet connection for API calls
+- RAG pipelines can be optimized by combining agent calls
+- Free tier limitations are real (especially for ML models)
+- Caching vector stores makes a huge difference
+- Sometimes the simplest frontend is the best frontend
+- Proper error handling > perfect code
+- Documentation matters
 
 ## License
 
-This is a demonstration project for educational purposes.
+MIT
 
-## Production Monitoring
+## Contact
 
-### Viewing Logs
-**Local Development**:
-```bash
-# Backend logs appear in terminal where uvicorn is running
-# Look for structured logs like:
-# 2024-02-09 10:30:15 | __main__ | INFO | === NEW QUERY ===
-# 2024-02-09 10:30:22 | __main__ | INFO | === QUERY COMPLETE === Response time: 7250ms
-```
-
-**Production (Render)**:
-1. Go to Render dashboard
-2. Click your service
-3. Click "Logs" tab
-4. See real-time structured logs
-
-### Key Metrics to Monitor
-- **Response Time**: Should be 4-8s (local) or 8-12s (production with cold start)
-- **Confidence Scores**: Should average >85%
-- **Error Rate**: Should be <5%
-- **API Usage**: Monitor Anthropic API credits
-
-### Health Checks
-- Backend health: `GET /health` → returns `{"status": "healthy"}`
-- API docs: Visit `/docs` for interactive Swagger UI
-
-## Support
-
-For issues or questions:
-1. Check the Troubleshooting section above
-2. Verify all setup steps were completed
-3. Check backend console logs for error details
-4. Ensure API key is valid and has credits
-5. Review [DEPLOYMENT.md](DEPLOYMENT.md) for production issues
+For questions or issues, open a GitHub issue or contact me directly.
