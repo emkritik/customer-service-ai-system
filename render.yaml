@@ -19,3 +19,4 @@ services:
       mountPath: /opt/render/project/src/backend
       sizeGB: 1
     healthCheckPath: /health
+    healthCheckTimeout: 300
