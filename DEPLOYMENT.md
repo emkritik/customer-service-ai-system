@@ -148,3 +148,62 @@ Render free tier includes:
 - Keep `ANTHROPIC_API_KEY` in Render environment variables only
 - API key is loaded from environment using `python-dotenv`
 - All secrets are excluded via `.gitignore`
+
+## Vercel Frontend Deployment
+
+### Why Vercel?
+- Optimized for static sites
+- Global CDN (fast worldwide)
+- No cold starts
+- Free tier generous
+- Instant deployment
+
+### Steps
+
+1. **Sign up for Vercel**
+   - Go to https://vercel.com
+   - Click "Sign Up"
+   - Choose "Continue with GitHub"
+   - Authorize Vercel
+
+2. **Deploy Frontend**
+   - Click "New Project"
+   - Import your GitHub repository
+   - Configure:
+     * Framework Preset: Other
+     * Root Directory: `frontend`
+     * Build Command: (leave empty)
+     * Output Directory: (leave empty)
+   - Click "Deploy"
+
+3. **Verify Deployment**
+   - After deployment completes, click "Visit" to open your site
+   - Your frontend is now live with automatic HTTPS
+   - Frontend is already configured to use: `https://customer-service-ai-system.onrender.com`
+
+4. **Configure Domain (Optional)**
+   - In Vercel dashboard → Settings → Domains
+   - Add custom domain if desired
+
+### Testing
+
+1. Visit your Vercel URL
+2. Click "Wake Up Backend" (if needed for first use)
+3. Submit test query
+4. Verify answer appears
+
+### Monitoring
+
+Vercel provides:
+- Deployment logs
+- Analytics (page views, performance)
+- Real-time errors (if any)
+
+Access via: Vercel Dashboard → Your Project → Analytics
+
+### Auto-Deployment
+
+- Push to GitHub → Vercel automatically redeploys
+- Preview deployments for pull requests
+- Production deployment from main branch
+

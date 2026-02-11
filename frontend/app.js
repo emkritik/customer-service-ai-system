@@ -134,3 +134,35 @@ function openPDF(filename, page) {
     const pdfUrl = `${API_URL}/api/pdf/${filename}#page=${page}`;
     window.open(pdfUrl, '_blank');
 }
+
+async function warmupBackend() {
+    const btn = document.getElementById('warmupBtn');
+    const status = document.getElementById('warmupStatus');
+
+    btn.disabled = true;
+    btn.textContent = 'Waking up...';
+    status.textContent = '(30-60 seconds)';
+    status.style.color = '#856404';
+
+    try {
+        const response = await fetch(`${API_URL}/health`, {
+            method: 'GET',
+            signal: AbortSignal.timeout(90000)
+        });
+
+        if (response.ok) {
+            status.textContent = '✓ Ready!';
+            status.style.color = '#155724';
+            btn.textContent = 'Wake Up Backend';
+            setTimeout(() => status.textContent = '', 3000);
+        } else {
+            throw new Error('Health check failed');
+        }
+    } catch (error) {
+        status.textContent = '✗ Still starting... try again in 30s';
+        status.style.color = '#721c24';
+        btn.textContent = 'Wake Up Backend';
+    } finally {
+        btn.disabled = false;
+    }
+}

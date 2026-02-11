@@ -16,6 +16,12 @@
     </nav>
 
     <div class="container">
+        <div class="warmup-section">
+            <p class="warmup-info">⏰ First use after inactivity? Wake up the system:</p>
+            <button onclick="warmupBackend()" class="btn-warmup" id="warmupBtn">Wake Up Backend</button>
+            <span id="warmupStatus"></span>
+        </div>
+
         <div class="input-section">
             <h2>Ask a Question</h2>
             <input type="text" id="repName" placeholder="Your Name" class="input-field">
