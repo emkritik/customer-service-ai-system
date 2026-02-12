@@ -1,209 +1,158 @@
-# Deployment Guide - Render
+# Deployment Guide
 
-## Prerequisites
-- GitHub account
-- Render account (free tier)
-- Anthropic API key
+This guide covers deploying the Customer Service Support System to free cloud platforms.
 
-## Deployment Steps
+## Quick Overview
 
-### 1. Prepare Repository
-```bash
-# Ensure all changes committed
-git add .
-git commit -m "Production ready"
-git push origin main
-```
+- **Frontend**: Deploy to Netlify (static site, super easy)
+- **Backend**: Deploy to Render or Railway (both have free tiers)
 
-### 2. Deploy Backend on Render
+## Frontend Deployment (Netlify)
 
-1. Go to [render.com](https://render.com)
-2. Click "New +" → "Web Service"
-3. Connect GitHub repository
-4. Configure:
-   - **Name**: customer-service-backend
-   - **Region**: Oregon (or closest to you)
-   - **Branch**: main
-   - **Root Directory**: (leave empty)
-   - **Environment**: Python 3
-   - **Build Command**: 
-     ```
-     pip install -r backend/requirements.txt && cd backend && python init_rag.py
-     ```
-   - **Start Command**:
-     ```
-     cd backend && uvicorn api.main:app --host 0.0.0.0 --port $PORT
-     ```
-   - **Plan**: Free
-
-5. Add Environment Variables:
-   - `ANTHROPIC_API_KEY` = your-key-here
-   - `PYTHON_VERSION` = 3.11.0
-   - `ENVIRONMENT` = production
-
-6. Add Persistent Disk:
-   - Name: data-disk
-   - Mount Path: `/opt/render/project/src/backend`
-   - Size: 1 GB
-
-7. Click "Create Web Service"
-8. Wait for deployment (5-10 minutes first time)
-9. **Copy your backend URL**: `https://YOUR-APP.onrender.com`
-
-### 3. Deploy Frontend on Render
-
-1. Click "New +" → "Static Site"
-2. Connect same GitHub repository
-3. Configure:
-   - **Name**: customer-service-frontend
-   - **Branch**: main
-   - **Publish Directory**: `frontend`
-   - **Build Command**: (leave empty)
-
-4. Click "Create Static Site"
-5. **Copy your frontend URL**: `https://YOUR-FRONTEND.onrender.com`
-
-### 4. Update Frontend API URL
-
-Edit `frontend/app.js`:
-```javascript
-const API_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost:8000'
-  : 'https://YOUR-BACKEND-NAME.onrender.com';  // UPDATE THIS
-```
-
-Commit and push - frontend will auto-redeploy.
-
-### 5. Test Production
-
-1. Visit frontend URL
-2. Enter name and question
-3. Verify answer appears
-4. Check response time
-
-### 6. View Logs
-
-1. Go to Render dashboard
-2. Click backend service
-3. Click "Logs" tab
-4. See real-time logs
-
-## Troubleshooting
-
-**Cold starts**: First request after inactivity takes 30-60s (free tier limitation)
-
-**Build fails**: Check that all PDFs are in `knowledge_base/` folder
-
-**API errors**: Verify `ANTHROPIC_API_KEY` is set correctly in Render
-
-**Database issues**: Ensure persistent disk is mounted
-
-## URLs
-- **Frontend**: https://your-frontend.onrender.com
-- **Backend**: https://your-backend.onrender.com
-- **API Docs**: https://your-backend.onrender.com/docs
-
-## Performance Monitoring
-
-Monitor response times in the logs. Look for lines like:
-```
-=== QUERY COMPLETE === Response time: 7500ms
-```
-
-Expected performance:
-- **Local**: 4-8 seconds
-- **Production (Render Free)**: 8-12 seconds (due to cold starts)
-- **Production (Warmed up)**: 4-8 seconds
-
-## Maintenance
-
-### Updating the Deployment
-
-1. Make changes locally
-2. Test locally
-3. Commit and push to GitHub
-4. Render will automatically redeploy
-
-### Viewing Database
-
-Database is stored in the persistent disk. To view data:
-1. Go to Render dashboard
-2. Click on your service
-3. Click "Shell" tab
-4. Run: `sqlite3 data/customer_service.db`
-5. Run SQL: `SELECT * FROM queries ORDER BY timestamp DESC LIMIT 10;`
-
-### Monitoring Costs
-
-Render free tier includes:
-- 750 hours/month compute time
-- 1 GB persistent disk
-- Automatic sleep after 15 min inactivity
-
-**Note**: Cold starts add 30-60s to first request after sleep.
-
-## Security Notes
-
-- Never commit `.env` files
-- Keep `ANTHROPIC_API_KEY` in Render environment variables only
-- API key is loaded from environment using `python-dotenv`
-- All secrets are excluded via `.gitignore`
-
-## Vercel Frontend Deployment
-
-### Why Vercel?
-- Optimized for static sites
-- Global CDN (fast worldwide)
-- No cold starts
-- Free tier generous
-- Instant deployment
+Netlify is perfect for the static frontend - it's free and takes about 2 minutes.
 
 ### Steps
 
-1. **Sign up for Vercel**
-   - Go to https://vercel.com
-   - Click "Sign Up"
-   - Choose "Continue with GitHub"
-   - Authorize Vercel
+1. Go to [netlify.com](https://netlify.com) and sign in with GitHub
 
-2. **Deploy Frontend**
-   - Click "New Project"
-   - Import your GitHub repository
-   - Configure:
-     * Framework Preset: Other
-     * Root Directory: `frontend`
-     * Build Command: (leave empty)
-     * Output Directory: (leave empty)
-   - Click "Deploy"
+2. Click "Add new site" → "Import an existing project"
 
-3. **Verify Deployment**
-   - After deployment completes, click "Visit" to open your site
-   - Your frontend is now live with automatic HTTPS
-   - Frontend is already configured to use: `https://customer-service-ai-system.onrender.com`
+3. Select your GitHub repository
 
-4. **Configure Domain (Optional)**
-   - In Vercel dashboard → Settings → Domains
-   - Add custom domain if desired
+4. Configure settings:
+   - **Build command**: Leave empty (it's already configured in netlify.toml)
+   - **Publish directory**: `frontend`
 
-### Testing
+5. Click "Deploy site"
 
-1. Visit your Vercel URL
-2. Click "Wake Up Backend" (if needed for first use)
-3. Submit test query
-4. Verify answer appears
+That's it! Netlify will give you a URL like `https://yoursite.netlify.app`
 
-### Monitoring
+The frontend is already configured to connect to the backend at the Render URL.
 
-Vercel provides:
-- Deployment logs
-- Analytics (page views, performance)
-- Real-time errors (if any)
+## Backend Deployment (Render)
 
-Access via: Vercel Dashboard → Your Project → Analytics
+Render has a free tier with 750 hours/month. Note that it has 512MB RAM which can be tight for the ML model.
 
-### Auto-Deployment
+### Steps
 
-- Push to GitHub → Vercel automatically redeploys
-- Preview deployments for pull requests
-- Production deployment from main branch
+1. Go to [render.com](https://render.com) and sign in with GitHub
 
+2. Click "New +" → "Web Service"
+
+3. Connect your GitHub repository
+
+4. Configure:
+   - **Name**: customer-service-backend (or whatever you want)
+   - **Region**: Choose closest to you
+   - **Branch**: main (or your branch name)
+   - **Build Command**: `pip install -r backend/requirements.txt`
+   - **Start Command**: `cd backend && uvicorn api.main:app --host 0.0.0.0 --port $PORT`
+
+5. Add environment variables:
+   - `ANTHROPIC_API_KEY`: Your API key from Anthropic
+   - `PYTHON_VERSION`: 3.11.0
+   - `ENVIRONMENT`: production
+
+6. Click "Create Web Service"
+
+7. Wait for deployment (5-10 minutes first time)
+
+### Getting Your URL
+
+Once deployed, Render gives you a URL like `https://yourservice.onrender.com`
+
+Test it: `https://yourservice.onrender.com/health` should return `{"status":"healthy"}`
+
+### Known Limitation
+
+Render's free tier (512MB RAM) can struggle with the HuggingFace embedding model (~350MB). If you experience timeouts:
+- Upgrade to Starter plan ($7/month, 2GB RAM)
+- Or try Railway (8GB free tier)
+
+## Alternative: Railway
+
+Railway has 8GB RAM on free tier (500 hours/month), which is plenty for this app.
+
+### Steps
+
+1. Go to [railway.app](https://railway.app) and sign in with GitHub
+
+2. Click "+ New Project" → "Deploy from GitHub repo"
+
+3. Select your repository
+
+4. Railway will detect the Dockerfile automatically
+
+5. Add environment variables:
+   - `ANTHROPIC_API_KEY`: Your API key
+   - `PORT`: 8000
+
+6. Click "Deploy"
+
+7. After deployment, go to Settings → Networking → Generate Domain
+
+That's it! Railway's 8GB RAM should handle everything smoothly.
+
+## Updating the Frontend
+
+If you deploy the backend to a different URL, update `frontend/app.js`:
+
+```javascript
+const API_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:8000'
+  : window.location.hostname.includes('127.0.0.1')
+    ? 'http://localhost:8000'
+    : 'https://your-backend-url.com';  // Update this line
+```
+
+Commit and push - Netlify will auto-redeploy.
+
+## Testing Your Deployment
+
+### Backend Health Check
+```bash
+curl https://your-backend-url.com/health
+```
+
+Expected: `{"status":"healthy"}`
+
+### Full Test
+1. Visit your frontend URL
+2. Enter a name
+3. Ask a question (e.g., "How do I reset my password?")
+4. Should get a response in 5-15 seconds
+
+### Troubleshooting
+
+**Backend timeout on first query**
+- This is normal - the HuggingFace model downloads on first use
+- Subsequent queries will be fast
+
+**500 Error**
+- Check your API key is set correctly in environment variables
+- Look at backend logs in Render/Railway dashboard
+
+**CORS Error**
+- Make sure backend URL in frontend/app.js is correct
+- Backend is configured to allow all origins
+
+## Monitoring
+
+Both Render and Railway have dashboards where you can:
+- View logs in real-time
+- Check memory/CPU usage
+- See deployment history
+- Monitor uptime
+
+For production use, consider setting up monitoring with UptimeRobot (free) to keep the service from sleeping.
+
+## Cost Summary
+
+| Service | Plan | Cost |
+|---------|------|------|
+| Netlify | Free | $0 |
+| Render Free | 750hrs/month | $0 |
+| Render Starter | Always-on | $7/month |
+| Railway | 500hrs/month | $0 |
+
+The free tiers are fine for demos and light usage. For production with consistent traffic, the Render Starter plan or Railway's paid tier are worth it.
