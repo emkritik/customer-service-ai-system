@@ -80,5 +80,5 @@ backend/*.log
 .coverage
 htmlcov/
 
-# Assessment submission (local only)
-assessment_submission/
+# Documentation (local only)
+documentation/
